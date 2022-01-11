@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import Header from './components/header'
 
 type Todo = {
-    value: string,
-    readonly id: number,
+    value: string;
+    readonly id: number;
+    checked: boolean;
 }
 
 export default function Home() {
@@ -15,6 +16,7 @@ export default function Home() {
         const newTodo: Todo = {
             value: text,
             id: new Date().getTime(),
+            checked: false,
         };
         setTodos([newTodo, ...todos]);
         setText('');
@@ -28,6 +30,16 @@ export default function Home() {
         const newTodos = todos.map((todo) => {
             if (todo.id === id) {
                 todo.value = value;
+            }
+            return todo;
+        });
+        setTodos(newTodos);
+    };
+
+    const handleOnCheck = (id: number) => {
+        const newTodos = todos.map((todo) => {
+            if (todo.id === id) {
+                todo.checked = !todo.checked;
             }
             return todo;
         });
@@ -58,7 +70,13 @@ export default function Home() {
                     return (
                         <li key={todo.id}>
                             <input
+                                type="checkbox"
+                                checked={todo.checked}
+                                onChange={() => handleOnCheck(todo.id)}
+                            />
+                            <input
                                 type="text"
+                                disabled={todo.checked}
                                 value={todo.value}
                                 onChange={(e) => handleOnEdit(todo.id, e.target.value)}
                             />
