@@ -1,147 +1,80 @@
 import React, { useState } from 'react';
 import Header from './components/header';
 import AppBar from './components/TodoAppBar';
+import { makeStyles, createStyles, Theme } from '@material-ui/core/styles';
+import Box from '@material-ui/core/Box';
+import Typography from '@material-ui/core/Typography';
+import Button from '@material-ui/core/Button';
+import RegisterDialog from './components/RegisterDialog';
+import { useRecoilValue } from 'recoil';
+import Fab from '@material-ui/core/Fab';
+import AddIcon from '@material-ui/icons/Add';
+import TodoTable from './components/TodoTable';
+import { tasksState } from './atoms/Tasks';
 
-type Todo = {
-    value: string;
-    readonly id: number;
-    checked: boolean;
-    removed: boolean;
-}
 
-type Filter = 'all' | 'checked' | 'unchecked' | 'removed';
+const useStyles = makeStyles((theme: Theme) =>
+    createStyles({
+        button: {
+            '&:hover': {
+                backgroundColor: '#6666ff'
+            }
+        },
+        fab: {
+            position: 'absolute',
+            bottom: '2rem',
+            right: '2rem',
+            '&:hover': {
+                backgroundColor: '#6666ff'
+            }
+        }
+    })
+);
 
 export default function Home() {
-    const [text, setText] = useState('');
-    const [todos, setTodos] = useState<Todo[]>([]);
-    const [filter, setFilter] = useState<Filter>('all');
-
-    const handleOnSubmit = () => {
-        if (!text) return;
-        const newTodo: Todo = {
-            value: text,
-            id: new Date().getTime(),
-            checked: false,
-            removed: false,
-        };
-        setTodos([newTodo, ...todos]);
-        setText('');
-    };
-
-    const handleOnChange = () => (e: React.ChangeEvent<HTMLInputElement>) => {
-        setText(e.target.value);
-    }
-
-    const handleOnEdit = (id: number, value: string) => {
-        const newTodos = todos.map((todo) => {
-            if (todo.id === id) {
-                todo.value = value;
-            }
-            return todo;
-        });
-        setTodos(newTodos);
-    };
-
-    const handleOnCheck = (id: number) => {
-        const newTodos = todos.map((todo) => {
-            if (todo.id === id) {
-                todo.checked = !todo.checked;
-            }
-            return todo;
-        });
-        setTodos(newTodos);
-    };
-
-    const handleOnRemove = (id: number, removed: boolean) => {
-        const newTodos = todos.map((todo) => {
-            if (todo.id === id) {
-                todo.removed = !todo.removed;
-            }
-            return todo;
-        });
-        setTodos(newTodos);
-    };
-
-    const filteredTodos = todos.filter((todo) => {
-        switch (filter) {
-            case 'all':
-                return !todo.removed;
-            case 'checked':
-                return todo.checked && !todo.removed;
-            case 'unchecked':
-                return !todo.checked && !todo.removed;
-            case 'removed':
-                return todo.removed;
-            default:
-                return todo;
-        }
-    });
-
-    const handleOnEmpty = () => {
-        const newTodos = todos.filter((todo) => !todo.removed);
-        setTodos(newTodos);
-    }
+    const classes = useStyles();
+    const [open, setOpen] = useState<boolean>(false);
+    const handleOpen = () => setOpen(true);
+    const handleClose = () => setOpen(false);
+    const tasks = useRecoilValue(tasksState);
 
     return (
         <div className="container">
-            <Header>
-                <AppBar />
-            </Header>
-            <select defaultValue="all" onChange={(e) => setFilter(e.target.value as Filter)}>
-                <option value="all">全てのタスク</option>
-                <option value="checked">完了したタスク</option>
-                <option value="unchecked">現在のタスク</option>
-                <option value="removed">ゴミ箱</option>
-            </select>
-            {
-                filter === 'removed' ? (
-                    <button onClick={handleOnEmpty}>
-                        ゴミ箱を空にする
-                    </button>
-                ) : (
-                    <form onSubmit={(e) => {
-                        e.preventDefault();
-                        handleOnSubmit();
-                    }}
-                    >
-                        <input
-                            type="text"
-                            value={text}
-                            disabled={filter === 'checked'}
-                            onChange={(e) => setText(e.target.value)}
-                        />
-                        <input
-                            type="submit"
-                            value="追加"
-                            disabled={filter === 'checked'}
-                            onSubmit={handleOnSubmit}
-                        />
-                    </form>
-                )
-            }
-            <ul>
-                {filteredTodos.map((todo) => {
-                    return (
-                        <li key={todo.id}>
-                            <input
-                                type="checkbox"
-                                disabled={todo.removed}
-                                checked={todo.checked}
-                                onChange={() => handleOnCheck(todo.id)}
-                            />
-                            <input
-                                type="text"
-                                disabled={todo.checked || todo.removed}
-                                value={todo.value}
-                                onChange={(e) => handleOnEdit(todo.id, e.target.value)}
-                            />
-                            <button onClick={() => handleOnRemove(todo.id, todo.removed)}>
-                                {todo.removed ? '復元' : '削除'}
-                            </button>
-                        </li>
-                    );
-                })}
-            </ul>
+            <>
+                <Header>
+                    <AppBar />
+                </Header>
+                <Box padding="2rem" textAlign="center">
+                    {tasks.length !== 0 ? (
+                        <>
+                            <TodoTable />
+                            <Fab
+                                className={classes.fab}
+                                onClick={handleOpen}
+                                color="primary"
+                                aria-label="add"
+                            >
+                                <AddIcon />
+                            </Fab>
+                        </>
+                    ) : (
+                        <>
+                            <Typography variant="subtitle1" gutterBottom>
+                                まだ登録されたタスクはありません。
+                            </Typography>
+                            <Button
+                                className={classes.button}
+                                onClick={handleOpen}
+                                variant="contained"
+                                color="primary"
+                            >
+                                タスクを登録する
+                            </Button>
+                        </>
+                    )}
+                </Box>
+                <RegisterDialog open={open} onClose={handleClose} />
+            </>
         </div >
     )
 }
