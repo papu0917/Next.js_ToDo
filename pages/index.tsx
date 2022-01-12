@@ -76,32 +76,48 @@ export default function Home() {
         }
     });
 
+    const handleOnEmpty = () => {
+        const newTodos = todos.filter((todo) => !todo.removed);
+        setTodos(newTodos);
+    }
+
     return (
-        <div>
+
+        <div className="container">
+
             <Header title={`Next.jsで作るToDoアプリ`}></Header>
+
             <select defaultValue="all" onChange={(e) => setFilter(e.target.value as Filter)}>
                 <option value="all">全てのタスク</option>
                 <option value="checked">完了したタスク</option>
                 <option value="unchecked">現在のタスク</option>
                 <option value="removed">ゴミ箱</option>
             </select>
-            <form onSubmit={(e) => {
-                e.preventDefault();
-                handleOnSubmit();
-            }}
-            >
-                <input
-                    type="text"
-                    value={text}
-                    disabled={filter === 'checked'}
-                    onChange={(e) => setText(e.target.value)}
-                />
-                <input
-                    type="submit"
-                    value="追加"
-                    onSubmit={handleOnSubmit}
-                />
-            </form>
+            {filter === 'removed' ? (
+                <button onClick={handleOnEmpty}>
+                    ゴミ箱を空にする
+                </button>
+            ) : (
+                <form onSubmit={(e) => {
+                    e.preventDefault();
+                    handleOnSubmit();
+                }}
+                >
+                    <input
+                        type="text"
+                        value={text}
+                        disabled={filter === 'checked'}
+                        onChange={(e) => setText(e.target.value)}
+                    />
+                    <input
+                        type="submit"
+                        value="追加"
+                        disabled={filter === 'checked'}
+                        onSubmit={handleOnSubmit}
+                    />
+                </form>
+            )}
+
             <ul>
                 {filteredTodos.map((todo) => {
                     return (
