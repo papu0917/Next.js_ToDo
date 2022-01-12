@@ -14,3 +14,11 @@ a {
 * {
   box-sizing: border-box;
 }
+
+.container {
+    text-align: center;
+}
+
+.container li {
+    list-style: none;
+}
